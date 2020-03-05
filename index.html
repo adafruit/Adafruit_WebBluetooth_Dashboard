@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Adafruit Web Bluetooth Dashboard</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      // Redirect to HTTPS if HTTP is requested.
+      if (window.location.protocol === 'http:') {
+        window.location.href = 'https:' + window.location.href.substring(5);
+      }
+    </script>    
+    <!-- import Chart.js library via CDN, per Chart.js documentation -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.js" defer></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js" defer></script>
+    <script src="/js/colorjoe.min.js" defer></script>
+    <script src="/js/scale.fix.js" defer></script>
+    <script src="/js/graph.js" defer></script>
+    
+    <!-- import the web page's stylesheets along with the themes -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/light.css" id="light" class="alternate" disabled>
+    <link rel="stylesheet" href="/css/dark.css"  id="dark"  class="alternate" disabled>
+    <link rel="stylesheet" href="/css/colorjoe.css">
+    
+    <!-- import the webpage's javascript file -->
+    <script type="module" src="/js/script.js" defer></script>
+  </head>  
+  <body>
+    <header class="header">
+      <h1>Adafruit Web Bluetooth Dashboard</h1>
+    </header>
+    <main class="main">
+      <div id="notSupported" class="notSupported">
+        Sorry, <b>Web Bluetooth</b> is not supported on this device, make sure you're 
+        running Chrome 56 or later. If you are running linux, make sure you have enabled the 
+        <code>#enable-experimental-web-platform-features</code> flag in
+        <code>chrome://flags</code>
+      </div>    
+
+      <div class="controls">
+        <button id="butConnect" type="button">Connect</button>
+        <input type="checkbox" id="knownonly"> Show only known devices
+        <input type="checkbox" id="darkmode"> Dark Mode
+      </div>
+      <div id="dashboard"></div>      
+      <div id="log"></div>
+      <div class="controls">
+        <input type="checkbox" id="autoscroll"> Autoscroll
+        <input type="checkbox" id="showTimestamp"> Show Timestamp
+        <button id="butClear" type="button">Clear</button>
+        <span id="fpsCounter"></span>
+        <span class="remix"><button onclick="location.href='https://glitch.com/edit/#!/remix/adafruit-webbt-playground'">Remix with Glitch</button></span>
+      </div>
+    </main>
+    <div id="templates">
+      <div class="text">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <p>
+          content            
+          </p>
+        </div>
+      </div>
+      <div class="graph">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <canvas></canvas>
+        </div>
+      </div>
+      <div class="form">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <form>
+          </form>
+        </div>
+      </div>
+      <div class="color">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <div></div>
+        </div>
+      </div>
+      <div class="model3d">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <canvas></canvas>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

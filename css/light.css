@@ -1,0 +1,51 @@
+.header {
+  background: #000;
+  color: #fff;
+}
+
+body {
+  background-color: #efefef;
+}
+
+input, select, button {
+  background-color: #fff;
+  color: #000;
+}
+
+.serial-input input {
+  border-color: purple;
+}
+
+.serial-input input:disabled {
+  border-color: #ccc;
+}
+
+.timestamp {
+  color: #999;
+}
+
+#dashboard {
+  border-color: purple;
+  background-color: #ccc;
+}
+
+#dashboard > div {
+  background-color: #efefef;
+  border-color: #999;
+}
+
+#dashboard .title {
+  background-color: lavender;
+}
+
+#notSupported {
+  background-color: red;
+  color: white;
+}
+
+#log {
+  border-color: purple;
+  background-color: #fff;
+  color: #333;
+}
+

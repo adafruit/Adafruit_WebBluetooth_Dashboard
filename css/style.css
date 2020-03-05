@@ -1,0 +1,191 @@
+/**
+ * Header
+ */
+
+.header {
+  align-content: center;
+  align-items: stretch;
+  box-shadow:
+    0 4px 5px 0 rgba(0, 0, 0, 0.14),
+    0 2px 9px 1px rgba(0, 0, 0, 0.12),
+    0 4px 2px -2px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  font-size: 20px;
+  height: 50px;
+  justify-content: flex-start;
+  padding: 10px 16px 7px 16px;
+  position: fixed;
+  transition: transform 0.233s cubic-bezier(0, 0, 0.21, 1) 0.1s;
+  width: 100%;
+  will-change: transform;
+  z-index: 1000;
+  margin: 0;
+}
+
+.header h1 {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+body {
+  font-family: "Benton Sans", "Helvetica Neue", helvetica, arial, sans-serif;
+  margin: 0;
+}
+
+p {
+  margin: 0.2em;
+}
+
+span.remix {
+  float: right;
+}
+
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+}
+
+.main {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 80px;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.hidden {
+  display: none;
+}
+
+.controls {
+  height: 40px;
+  line-height: 40px;
+}
+
+.controls span {
+  margin-left: 8px;
+}
+
+.controls button {
+  font-size: 0.9em;
+  margin: 0 10px;
+}
+
+#dashboard {
+  position: relative;
+  height: calc(60vh - 100px);
+  margin: 10px auto;
+  border-width: 1px;
+  border-style: solid;
+  overflow-y: auto;
+}
+
+#dashboard > div {
+  width: 20vh;
+  height: 20vh;
+  margin: 2px;
+  border-width: 1px;
+  border-style: solid;
+  float: left;
+}
+
+#dashboard .title {
+  text-align: left;
+  font-size: 2vh;
+  font-weight: bold;
+  line-height: 3vh;
+  padding-left: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#dashboard .content {
+  text-align: center;
+}
+
+/* Text Panel */
+#dashboard .text .content {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 3vh;
+  height: 17vh;
+  width: 20vh;
+  display: table;
+}
+
+#dashboard .text .content p {
+  vertical-align: middle;
+  padding: 10px;
+  width: 100%;
+  display: table-cell;
+}
+
+/* Graph Panel */
+#dashboard .graph .content {
+  position: relative;
+  height: 17vh;
+}
+
+/* Form Panel */
+#dashboard .form .content {
+  overflow: hidden;
+  height: 17vh;
+  width: 20vh;
+  display: table;
+}
+
+#dashboard .form .content form {
+  vertical-align: middle;
+  padding: 10px;
+  width: 100%;
+  display: table-cell;
+}
+
+#dashboard .form .content form button {
+  outline: none;
+  font-size: 2vh;
+}
+
+/* Color Panel */
+#dashboard .color .content {
+  position: relative;
+  height: 17vh;
+}
+
+/* Graph Panel */
+#dashboard .model3d .content {
+  position: relative;
+  height: 17vh;
+}
+
+.notSupported {
+  padding: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+#templates {
+  display: none;
+}
+
+#log {
+  height: calc(40vh - 100px);
+  width: 100%;
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  font-size: 0.8em;
+  border-width: 1px;
+  border-style: solid;
+  overflow-x: hidden; 
+  overflow-x: auto;
+  transition : color 0.1s linear;
+}

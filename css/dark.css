@@ -1,0 +1,58 @@
+.header {
+  background: #000;
+  color: #fff;
+}
+
+body {
+  background-color: #282828;
+  color: #fff;
+}
+
+input, select, button {
+  background-color: #454545;
+  color: #fff;
+}
+
+.serial-input input {
+  background-color: #383838;
+  border-color: #666;
+}
+
+.serial-input input:disabled,
+.serial-input button:disabled {
+  border-color: #333;
+  color: #666;
+}
+
+.timestamp {
+  color: #888;
+}
+
+.dashboard {
+  border-color: #666;
+}
+
+#dashboard {
+  border-color: #666;
+  background-color: #383838;
+}
+
+#dashboard > div {
+  background-color: #282828;
+  border-color: #666;
+}
+
+#dashboard .title {
+  background-color: #333;
+}
+
+#notSupported {
+  background-color: red;
+  color: white;
+}
+
+#log {
+  border-color: #666;
+  background-color: #383838;
+  color: #ccc;
+}
