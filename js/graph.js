@@ -4,11 +4,10 @@
 
 var Graph = function(canvas) {
   let adaChart;
-  
+
   this.chart = canvas.getContext('2d');
   this.maxBufferSize = 64
-  this.showLegend = true;
-  
+
   this.XTConfig = {
     type: 'line', // make it a line chart
     data: {
@@ -16,20 +15,26 @@ var Graph = function(canvas) {
       datasets: []
     },
     options: {
-      elements: {
-        line: {
-          tension: 0,
-          fill: false
-        },
-      },
       animation: {
         duration: 0
+      },
+      elements: {
+        line: {
+          fill: false
+        },
       },
       hover: {
         enabled: false
       },
-      tooltips: {
-        enabled: false
+      layout: {
+        padding: {
+          top: 6,
+          bottom: 6,
+          right: 30
+        }
+      },
+      legend: {
+        display: false
       },
       maintainAspectRatio: false,
       responsive: true,
@@ -38,29 +43,27 @@ var Graph = function(canvas) {
           type: 'time',
           bounds: 'data',
           distribution: 'series',
+          display: false,
           gridLines: {
-            drawOnChartArea: false,
-          },
-          ticks: {
-            display: false,
+            display:false,
           },
         }],
         yAxes: [{
-          ticks: {
-            maxRotation: 0
-          }
+          display: false,
+          gridLines: {
+            display:false
+          },
         }]
+      },
+      tooltips: {
+        enabled: false
       },
     }
   };
 }
 
 Graph.prototype = {
-  create: function (showLegend) {  
-    if (showLegend === false) {
-      this.showLegend = false;
-    }
-
+  create: function () {
     // Remove any existing chart
     if (this.adaChart != undefined) {
       this.adaChart.destroy();
@@ -71,17 +74,12 @@ Graph.prototype = {
   },
   getConfig: function() {
     let config = this.XTConfig;
-    
-    if (!this.showLegend) {
-      config.options.legend = {display: false};
-    }
-
     return config;
   },
   updateLabelColor: function(color) {
     this.adaChart.options.scales.xAxes[0].ticks.fontColor = color;
     this.adaChart.options.scales.yAxes[0].ticks.fontColor = color;
-    this.adaChart.update();    
+    this.adaChart.update();
   },
   reset: function() {
     // Clear the data
@@ -104,7 +102,7 @@ Graph.prototype = {
       label: label,
       data: [],
       borderColor: color,
-      borderWidth: 1,
+      borderWidth: 2,
       pointRadius: 0
     }
     this.adaChart.data.datasets.push(dataConfig);
@@ -112,18 +110,25 @@ Graph.prototype = {
   update: function() {
     this.adaChart.update();
   },
-  addValue: function(dataSetIndex, value, autoFlush) {
+  addValue: function(datasetIndex, value, autoFlush) {
+    let dataset = this.adaChart.data.datasets[datasetIndex];
     if (autoFlush === undefined) {
       autoFlush = true;
     }
     let time = new Date();
-    this.adaChart.data.datasets[dataSetIndex].data.push({
+    dataset.data.push({
       t: time,
       y: value
     });
+    dataset.pointRadius = this.pointRadiusLast(5, dataset.data.length);
     if (autoFlush) {
       this.flushBuffer();
     }
+  },
+  pointRadiusLast: function (radius, length, initialArray) {
+    let result = initialArray || [ radius ];
+    while (result.length < length) result.unshift(0); // Place zeros in front
+    return result;
   },
   clearValues: function(dataSetIndex) {
     if (dataSetIndex !== undefined) {
@@ -135,7 +140,8 @@ Graph.prototype = {
     this.adaChart.data.datasets.forEach(
       dataset => {
         if (dataset.data.length > this.maxBufferSize) {
-          dataset.data.shift()
+          dataset.data.shift();
+          dataset.pointRadius = this.pointRadiusLast(5, dataset.data.length);
         }
       }
     )

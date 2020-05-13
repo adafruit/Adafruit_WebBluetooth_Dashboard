@@ -57,19 +57,19 @@
 
 .colorPicker .twod {
     float: left;
-    margin: 1vh;
+    margin: 10px 10px 10px 20px;
 }
 
 /* main dimensions */
 .colorPicker .twod, .colorPicker .twod .bg {
-    width: 15vh;
-    height: 15vh;
+    width: 170px;
+    height: 170px;
 }
 .colorPicker .oned, .colorPicker .oned .bg {
-    height: 15vh;
+    height: 170px;
 }
 .colorPicker .oned, .colorPicker .oned .bg, .colorPicker .oned .pointer .shape {
-    width: 2vh;
+    width: 20px;
 }
 
 .colorPicker .twod .bg {
@@ -88,9 +88,9 @@
     -webkit-transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    width: 10px;
-    height: 10px;
-    border: 2px solid black;
+    width: 7px;
+    height: 6px;
+    border: 1px solid black;
     -moz-border-radius: 5px;
     border-radius: 5px;
 }
@@ -98,9 +98,9 @@
     -webkit-transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    border: 2px solid white;
+    width: 5px;
+    height: 5px;
+    border: 1px solid white;
     -moz-border-radius: 4px;
     border-radius: 4px;
 }
@@ -119,12 +119,14 @@
 }
 .colorPicker .oned .pointer .shape {
     position: absolute;
-    margin-left: -1px;
-    margin-top: -4px;
-    height: 5px;
-    border: 2px solid black;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
+    margin-left: -4px;
+    margin-top: -2px;
+    height: 0;
+    border-width: 3px 4px;
+    border-style: solid;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    width: 23px;
 }
 /* gradients, tweak as needed based on which browsers you want to support */
 .colorPicker .oned .bg {
@@ -192,4 +194,3 @@
     background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(0,0,0,1) 100%); /* Opera 11.10+ */
     background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(0,0,0,1) 100%); /* W3C */
 }
-

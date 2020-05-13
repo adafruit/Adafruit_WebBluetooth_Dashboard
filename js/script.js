@@ -15,7 +15,8 @@ import {GLTFLoader} from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js
 let device;
 
 const bufferSize = 64;
-const colors = ['#0000FF', '#FF0000', '#009900', '#FF9900', '#CC00CC', '#666666', '#00CCFF', '#000000'];
+//const colors = ['#0000FF', '#FF0000', '#009900', '#FF9900', '#CC00CC', '#666666', '#00CCFF', '#000000'];
+const colors = ['#00a7e9', '#f89521', '#be1e2d'];
 const measurementPeriodId = '0001';
 
 const maxLogLength = 500;
@@ -30,11 +31,13 @@ const darkMode = document.getElementById('darkmode');
 const dashboard = document.getElementById('dashboard');
 const fpsCounter = document.getElementById("fpsCounter");
 const knownOnly = document.getElementById("knownonly");
+const butRemix = document.querySelector(".remix button");
 
 let colorIndex = 0;
 let activePanels = [];
 let bytesReceived = 0;
 let currentBoard;
+let buttonState = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
   butConnect.addEventListener('click', clickConnect);
@@ -43,15 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
   showTimestamp.addEventListener('click', clickTimestamp);
   darkMode.addEventListener('click', clickDarkMode);
   knownOnly.addEventListener('click', clickKnownOnly);
+  butRemix.addEventListener('click', remix);
 
   if ('bluetooth' in navigator) {
     const notSupported = document.getElementById('notSupported');
     notSupported.classList.add('hidden');
   }
-  
+
   loadAllSettings();
   updateTheme();
   startAnimating(30);
+  //createMockPanels();
 });
 
 let frameCount = 0;
@@ -64,39 +69,83 @@ function startAnimating(fps) {
   requestAnimationFrame(updateAllPanels);
 }
 
+function remix() {
+  let projectUrl = window.location.href.replace('.glitch.me/', '').replace('://', '://glitch.com/edit/#!/remix/');
+  window.location.href = projectUrl;
+}
+
 const boards = {
   CLUE: {
     colorOrder: 'GRB',
     neopixels: 1,
     hasSwitch: false,
+    buttons: 2,
   },
   CPlay: {
     colorOrder: 'GRB',
     neopixels: 10,
     hasSwitch: true,
+    buttons: 2,
   },
   Sense: {
     colorOrder: 'GRB',
     neopixels: 1,
     hasSwitch: false,
-  }, 
+    buttons: 1,
+  },
   unknown: {
     colorOrder: 'GRB',
     neopixels: 1,
     hasSwitch: false,
+    buttons: 1,
   }
 }
 
 let panels = {
   battery: {
+    title: 'Battery Level',
     serviceId: 'battery_service',
     characteristicId: 'battery_level',
-    panelType: "text",
+    panelType: "custom",
     structure: ['Uint8'],
     data: {battery:[]},
     properties: ['notify'],
     textFormat: function(value) {
       return numeral(value).format('0.0') + '%';
+    },
+    create: function(panelId) {
+      let panelTemplate = loadPanelTemplate(panelId, 'battery-level');
+      this.update(panelId);
+    },
+    update: function(panelId) {
+      let panelElement = document.querySelector("#dashboard > #" + panelId);
+      let value = null;
+      if (panels[panelId].data.battery.length > 0) {
+        value = panels[panelId].data.battery.pop();
+        panels[panelId].data.battery = [];
+      }
+
+      if (value != null && value <= 25) { // Show Red
+        panelElement.querySelector(".content .battery").classList.remove("battery-middle");
+        panelElement.querySelector(".content .battery").classList.add("battery-alert");
+      } else if (value == null || value <= 50) { // Show Yellow
+        panelElement.querySelector(".content .battery").classList.remove("battery-alert");
+        panelElement.querySelector(".content .battery").classList.add("battery-middle");
+      } else { // Show Green
+        panelElement.querySelector(".content .battery").classList.remove("battery-middle");
+        panelElement.querySelector(".content .battery").classList.remove("battery-alert");
+      }
+
+      if (value == null) {
+        panelElement.querySelector(".content .percentage").innerHTML = '?';
+        panelElement.querySelector(".content .battery .level").style.width = '100%';
+        panelElement.querySelector(".content .battery").title = 'Battery Level: ?';
+      } else {
+        panelElement.querySelector(".content .battery .level").style.width = value + '%';
+        value = panels[panelId].textFormat(value);
+        panelElement.querySelector(".content .percentage").innerHTML = value;
+        panelElement.querySelector(".content .battery").title = 'Battery Level: ' + value;
+      }
     },
   },
   temperature: {
@@ -107,7 +156,7 @@ let panels = {
     data: {temperature:[]},
     properties: ['notify'],
     textFormat: function(value) {
-      return numeral((9 / 5 * value) + 32).format('0.00') + '&deg; F'; 
+      return numeral((9 / 5 * value) + 32).format('0.00') + '&deg; F';
     },
   },
   light: {
@@ -126,7 +175,7 @@ let panels = {
     data: {x:[], y:[], z:[]},
     properties: ['notify'],
     textFormat: function(value) {
-      return numeral(value).format('0.000');
+      return numeral(value).format('0.00');
     },
     measurementPeriod: 500,
   },
@@ -138,7 +187,7 @@ let panels = {
     data: {x:[], y:[], z:[]},
     properties: ['notify'],
     textFormat: function(value) {
-      return numeral(value).format('0.000');
+      return numeral(value).format('0.00');
     },
     measurementPeriod: 500,
   },
@@ -150,31 +199,60 @@ let panels = {
     data: {x:[], y:[], z:[]},
     properties: ['notify'],
     textFormat: function(value) {
-      return numeral(value).format('0.000') + ' &micro;T';
+      return numeral(value).format('0.00') + ' &micro;T';
     },
     measurementPeriod: 500,
   },
   buttons: {
     serviceId: '0600',
     characteristicId: '0601',
-    panelType: "text",
+    panelType: "custom",
     structure: ['Uint32'],
     data: {buttonState:[]},
     properties: ['notify'],
-    textFormat: function (value) {
-      if (value & 2 && value & 4) {
-        return "Button A and Button B";
-      } else if (value & 4) {
-        return "Button B";
-      } else if (value & 2) {
-        return "Button A";
-      } else if (currentBoard.hasSwitch && value & 1) {
-        return "Switch On";
-      } else if (currentBoard.hasSwitch) {
-        return "Switch Off";
-      } else {
-        return "None";
+    create: function(panelId) {
+      let panelTemplate = loadPanelTemplate(panelId, 'onboard-buttons');
+      for (let i = 0; i < currentBoard.buttons; i++) {
+        let buttonTemplate = document.querySelector("#templates > .roundbutton").cloneNode(true);
+        buttonTemplate.id = "button_" + (i + 1);
+        buttonTemplate.querySelector(".text").innerHTML = String.fromCharCode(65 + i);
+        panelTemplate.querySelector(".content").appendChild(buttonTemplate);
       }
+    },
+    update: function(panelId) {
+      let panelElement = document.querySelector("#dashboard > #" + panelId);
+      buttonState = panels[panelId].data.buttonState.pop();
+      if (panels.switch.condition()) {
+        panels.switch.update('switch'); // Update the switch because we aren't doing 2 notifys
+      }
+      // Match the buttons to the values
+      for (let i = 1; i <= currentBoard.buttons; i++) {
+        if (buttonState & (1 << i)) {
+          panelElement.querySelector("#button_" + i + " .roundbtn").classList.add("pressed");
+        } else {
+          panelElement.querySelector("#button_" + i + " .roundbtn").classList.remove("pressed");
+        }
+      }
+    },
+  },
+  switch: {
+    serviceId: '0600',
+    characteristicId: '0601',
+    panelType: "custom",
+    structure: ['Uint32'],
+    data: {buttonState:[]},
+    properties: [],
+    condition: function() {
+      return currentBoard.hasSwitch;
+    },
+    create: function(panelId) {
+      let panelTemplate = loadPanelTemplate(panelId, 'onboard-switch');
+      this.update(panelId);
+    },
+    update: function(panelId) {
+      // UI Only Update
+      let panelElement = document.querySelector("#dashboard > #" + panelId);
+      panelElement.querySelector(".content #onboardSwitch").checked = buttonState & 1;
     },
   },
   humidity: {
@@ -202,16 +280,15 @@ let panels = {
   tone: {
     serviceId: '0c00',
     characteristicId: '0c01',
-    panelType: "form",
-    formData: {
-      play_sound: {
-        type: 'button',
-        onClick: function() {
-          let button = this;
-          button.disabled = true;
-          playSound(440, 1000, function() {button.disabled = false;})
-        },
+    panelType: "custom",
+    create: function(panelId) {
+      let panelTemplate = loadPanelTemplate(panelId, 'play-button');
+      panelTemplate.querySelector(".content .button").onclick = function() {
+        let button = this;
+        button.disabled = true;
+        playSound(440, 1000, function() {button.disabled = false;})
       }
+      this.packetSequence = this.structure;
     },
     structure: ['Uint16', 'Uint32'],
     properties: ['write'],
@@ -251,7 +328,7 @@ function playSound(frequency, duration, callback) {
     .then(callback);
 }
 
-function encodePacket(panelId, values) { 
+function encodePacket(panelId, values) {
   const typeMap = {
     "Uint8":    {fn: DataView.prototype.setUint8,    bytes: 1},
     "Uint16":   {fn: DataView.prototype.setUint16,   bytes: 2},
@@ -264,12 +341,12 @@ function encodePacket(panelId, values) {
     logMsg("Error in encodePacket(): Number of arguments must match structure");
     return false;
   }
-  
+
   let bufferSize = 0, packetPointer = 0;
   panels[panelId].packetSequence.forEach(function(dataType) {
     bufferSize += typeMap[dataType].bytes;
   });
-  
+
   let view = new DataView(new ArrayBuffer(bufferSize));
 
   for (var i = 0; i < values.length; i++) {
@@ -277,7 +354,7 @@ function encodePacket(panelId, values) {
     let dataViewFn = typeMap[dataType].fn.bind(view);
     dataViewFn(packetPointer, values[i], true);
     packetPointer += typeMap[dataType].bytes;
-  }  
+  }
 
   return view.buffer;
 }
@@ -287,7 +364,7 @@ function encodePacket(panelId, values) {
  * Opens a Web Serial connection to a micro:bit and sets up the input and
  * output stream.
  */
-async function connect() {  
+async function connect() {
   // - Request a port and open a connection.
   if (!device) {
     logMsg('Connecting to device ...');
@@ -316,7 +393,7 @@ async function connect() {
   if (device) {
     logMsg("Connected to device " + device.name);
     if (boards.hasOwnProperty(device.name)) {
-      currentBoard = boards[device.name];    
+      currentBoard = boards[device.name];
     } else {
       currentBoard = boards.unknown;
     }
@@ -326,15 +403,17 @@ async function connect() {
 
     // Create the panels only if service available
     for (let panelId of Object.keys(panels)) {
-      if (getFullId(panels[panelId].serviceId).substr(0, 4) == "adaf") {
-        for (const service of availableServices) {
-          if (getFullId(panels[panelId].serviceId) == service.uuid) {
-            createPanel(panelId);
+      if (panels[panelId].condition == undefined || panels[panelId].condition()) {
+        if (getFullId(panels[panelId].serviceId).substr(0, 4) == "adaf") {
+          for (const service of availableServices) {
+            if (getFullId(panels[panelId].serviceId) == service.uuid) {
+              createPanel(panelId);
+            }
           }
+        } else {
+          // Non-custom ones such as battery are always active
+          createPanel(panelId);
         }
-      } else {
-        // Non-custom ones such as battery are always active
-        createPanel(panelId);
       }
     }
 
@@ -413,7 +492,7 @@ function handleIncoming(panelId, value) {
     "Uint32":   {fn: DataView.prototype.getUint32,   bytes: 4},
     "Float32":  {fn: DataView.prototype.getFloat32,  bytes: 4}
   };
-  
+
   let packetPointer = 0, i = 0;
   panels[panelId].structure.forEach(function(dataType) {
     let dataViewFn = typeMap[dataType].fn.bind(value);
@@ -462,7 +541,7 @@ function logMsg(text) {
   if (log.textContent.split("\n").length > maxLogLength + 1) {
     let logLines = log.innerHTML.replace(/(\n)/gm, "").split("<br>");
     log.innerHTML = logLines.splice(-maxLogLength).join("<br>\n");
-  }  
+  }
 
   if (autoscroll.checked) {
     log.scrollTop = log.scrollHeight
@@ -480,7 +559,7 @@ function updateTheme() {
     .forEach((styleSheet) => {
       enableStyleSheet(styleSheet, false);
     });
-  
+
   if (darkMode.checked) {
     enableStyleSheet(darkSS, true);
   } else {
@@ -499,7 +578,7 @@ function enableStyleSheet(node, enabled) {
 async function reset() {
   // Clear the data
   clearGraphData();
-  
+
   // Clear all Panel Data
   for (let panelId of activePanels) {
     let panel = panels[panelId];
@@ -510,10 +589,10 @@ async function reset() {
     }
     panels[panelId].rendered = false;
   }
-  
+
   bytesReceived = 0;
   colorIndex = 0;
-  
+
   // Clear the log
   log.innerHTML = "";
 }
@@ -539,10 +618,10 @@ async function onDisconnected(event) {
       clearInterval(panels[panelId].polling);
     }
   }
-  
+
   // Loop through activePanels and remove them
   destroyPanels();
-  
+
   toggleUIConnected(false);
   logMsg('Device ' + disconnectedDevice.name + ' is disconnected.');
 
@@ -623,7 +702,7 @@ function loadSetting(setting, defaultValue) {
   if (value == null) {
     return defaultValue;
   }
-  
+
   return value;
 }
 
@@ -652,7 +731,7 @@ function updateAllPanels() {
     var sinceStart = now - startTime;
     var currentFps = Math.round(1000 / (sinceStart / ++frameCount) * 100) / 100;
     fpsCounter.innerHTML = "Running at " + currentFps + " FPS";
-  }  
+  }
 }
 
 function updatePanel(panelId) {
@@ -662,7 +741,9 @@ function updatePanel(panelId) {
     } else if (panels[panelId].panelType == "graph") {
       updateGraphPanel(panelId);
     } else if (panels[panelId].panelType == "model3d") {
-      update3dPanel(panelId);    
+      update3dPanel(panelId);
+    } else if (panels[panelId].panelType == "custom") {
+      updateCustomPanel(panelId);
     }
     panels[panelId].rendered = true;
   }
@@ -674,12 +755,12 @@ function createPanel(panelId) {
       createTextPanel(panelId);
     } else if (panels[panelId].panelType == "graph") {
       createGraphPanel(panelId);
-    } else if (panels[panelId].panelType == "form") {
-      createFormPanel(panelId);
     } else if (panels[panelId].panelType == "color") {
       createColorPanel(panelId);
     } else if (panels[panelId].panelType == "model3d") {
       create3dPanel(panelId);
+    } else if (panels[panelId].panelType == "custom") {
+      createCustomPanel(panelId);
     }
     panels[panelId].rendered = true;
     activePanels.push(panelId);
@@ -707,9 +788,12 @@ function ucWords(text) {
   return text.replace('_', ' ').toLowerCase().replace(/(?<= )[^\s]|^./g, a=>a.toUpperCase())
 }
 
-function loadPanelTemplate(panelId) {
+function loadPanelTemplate(panelId, templateId) {
+  if (templateId == undefined) {
+    templateId = panels[panelId].panelType;
+  }
     // Create Panel from Template
-  let panelTemplate = document.querySelector("#templates > ." + panels[panelId].panelType).cloneNode(true);
+  let panelTemplate = document.querySelector("#templates > ." + templateId).cloneNode(true);
   panelTemplate.id = panelId;
   if (panels[panelId].title !== undefined) {
     panelTemplate.querySelector(".title").innerHTML = panels[panelId].title;
@@ -764,69 +848,73 @@ function createGraphPanel(panelId) {
 
   // Create a canvas
   panels[panelId].graph = new Graph(canvas);
-  panels[panelId].graph.create(Object.entries(panels[panelId].data).length > 1);
-    
+  panels[panelId].graph.create(false);
+
   // Setup graph
   Object.entries(panels[panelId].data).forEach(([field, item], index) => {
     panels[panelId].graph.addDataSet(field, colors[(colorIndex + index) % colors.length]);
+    // Create text spans for each dataset and set the color here
+    let textField = document.createElement('div');
+    textField.style.color = colors[(colorIndex + index) % colors.length];
+    textField.id = field;
+    panelTemplate.querySelector(".content .text p").appendChild(textField);
   });
-  
   colorIndex += Object.entries(panels[panelId].data).length;
-  
+
   panels[panelId].graph.update();
 }
 
 function updateGraphPanel(panelId) {
   let panelElement = document.querySelector("#dashboard > #" + panelId);
+  let panelContent = [];
+  let multipleEntries = Object.entries(panels[panelId].data).length > 1;
+
   // Set Graph Data to match
   Object.entries(panels[panelId].data).forEach(([field, item], index) => {
     if (panels[panelId].data[field].length > 0) {
+      let value = null;
       while(panels[panelId].data[field].length > 0) {
-        let value = panels[panelId].data[field].shift();
+        value = panels[panelId].data[field].shift();
         panels[panelId].graph.addValue(index, value, false);
+      }
+      if (panels[panelId].textFormat !== undefined) {
+        value = panels[panelId].textFormat(value);
+      }
+      if (value !== null) {
+        if (multipleEntries) {
+          value = ucWords(field) + ": " + value;
+        }
+        panelElement.querySelector(".content .text p #" + field).innerHTML = value;
       }
     } else {
       panels[panelId].graph.clearValues(index);
-    }
-  });
-  panels[panelId].graph.flushBuffer();
-}
-
-/* Form Panel */
-function createFormPanel(panelId) {
-  // Create Panel from Template
-  let panelTemplate = loadPanelTemplate(panelId);
-  
-  for (let [elementId, element] of Object.entries(panels[panelId].formData)) {
-    if (element.type == 'button') {
-      let newElement = document.createElement("button");
-      newElement.id = elementId;
-      newElement.innerHTML = ucWords(elementId);
-      if (element.onClick !== undefined) {
-        newElement.onclick = element.onClick;
+      if (multipleEntries) {
+        panelElement.querySelector(".content .text p #" + field).innerHTML = ucWords(field) + ': -';
+      } else {
+        panelElement.querySelector(".content .text p #" + field).innerHTML = '-';
       }
-      panelTemplate.querySelector(".content form").appendChild(newElement);
     }
-  }
 
-  panels[panelId].packetSequence = panels[panelId].structure;
+  });
+
+  panels[panelId].graph.flushBuffer();
 }
 
 /* Color Panel */
 function createColorPanel(panelId) {
   // Create Panel from Template
   let panelTemplate = loadPanelTemplate(panelId);
-  
+
   let container = panelTemplate.querySelector('.content div');
   panels[panelId].colorPicker = colorjoe.rgb(container, 'red');
-  
+
   // Update the panel packet sequence to match the number of LEDs on board
   panels[panelId].packetSequence = panels[panelId].structure.slice(0, 2);
   let dataType = panels[panelId].structure[2].replace(/\[\]/, '');
   for (let i = 0; i < currentBoard.neopixels * 3; i++) {
     panels[panelId].packetSequence.push(dataType);
   }
-  
+
   // RGB Color Picker
   function updateModelLed(color) {
     logMsg("Changing neopixel to " + color.hex());
@@ -839,7 +927,7 @@ function createColorPanel(panelId) {
     .catch(error => {console.log(error);})
     .then(_ => {});
   }
-  
+
   function adjustColorOrder(red, green, blue) {
     // Add more as needed
     switch(currentBoard.colorOrder) {
@@ -857,14 +945,14 @@ function createColorPanel(panelId) {
 function create3dPanel(panelId) {
   let panelTemplate = loadPanelTemplate(panelId);
   let canvas = panelTemplate.querySelector(".content canvas");
-  
+
   // Make it visually fill the positioned parent
   canvas.style.width ='100%';
   canvas.style.height='100%';
   // ...then set the internal size to match
   canvas.width  = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
-  
+
   // Create a 3D renderer and camera
   panels[panelId].renderer = new THREE.WebGLRenderer({canvas});
 
@@ -901,7 +989,7 @@ function create3dPanel(panelId) {
     panels[panelId].scene.add(light);
     panels[panelId].scene.add(light.target);
   }
-  
+
   function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
     const halfSizeToFitOnScreen = sizeToFitOnScreen * 0.5;
     const halfFovY = THREE.MathUtils.degToRad(camera.fov * 0.5);
@@ -934,12 +1022,12 @@ function create3dPanel(panelId) {
       const root = gltf.scene;
       panels[panelId].model = root;
       panels[panelId].scene.add(root);
-      
+
       const box = new THREE.Box3().setFromObject(root);
 
       const boxSize = box.getSize(new THREE.Vector3()).length();
       const boxCenter = box.getCenter(new THREE.Vector3());
-      
+
       frameArea(boxSize * 1.25, boxSize, boxCenter, panels[panelId].camera);
     });
   }
@@ -973,14 +1061,39 @@ function update3dPanel(panelId) {
       panels[panelId].data[field] = [];
     }
   });
-  
+
   if (panels[panelId].model != undefined) {
     let rotObjectMatrix = new THREE.Matrix4();
     let rotationQuaternion = new THREE.Quaternion(quaternion.y, quaternion.z, quaternion.x, quaternion.w);
     rotObjectMatrix.makeRotationFromQuaternion(rotationQuaternion);
-    panels[panelId].model.quaternion.setFromRotationMatrix(rotObjectMatrix);      
+    panels[panelId].model.quaternion.setFromRotationMatrix(rotObjectMatrix);
   }
 
   panels[panelId].renderer.render(panels[panelId].scene, panels[panelId].camera);
 }
 
+function createCustomPanel(panelId) {
+  if (panels[panelId].condition === undefined || panels[panelId].condition()) {
+    if (panels[panelId].create != undefined) {
+      panels[panelId].create(panelId);
+    }
+  }
+}
+
+function updateCustomPanel(panelId) {
+  if (panels[panelId].condition === undefined || panels[panelId].condition()) {
+    if (panels[panelId].update != undefined) {
+      panels[panelId].update(panelId);
+    }
+  }
+}
+
+function createMockPanels() {
+  currentBoard = boards.CLUE;
+  for (let panelId of Object.keys(panels)) {
+    if (panels[panelId].condition == undefined || panels[panelId].condition()) {
+      // Non-custom ones such as battery are always active
+      createPanel(panelId);
+    }
+  }
+}

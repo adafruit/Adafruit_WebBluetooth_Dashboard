@@ -4,46 +4,45 @@
 }
 
 body {
-  background-color: #282828;
+  background-color: #333;
   color: #fff;
 }
 
 input, select, button {
-  background-color: #454545;
+  background-color: #333;
   color: #fff;
 }
 
-.serial-input input {
-  background-color: #383838;
-  border-color: #666;
-}
-
-.serial-input input:disabled,
-.serial-input button:disabled {
-  border-color: #333;
-  color: #666;
-}
-
-.timestamp {
-  color: #888;
-}
-
-.dashboard {
-  border-color: #666;
-}
-
 #dashboard {
-  border-color: #666;
-  background-color: #383838;
+  background-color: #333;
 }
 
 #dashboard > div {
-  background-color: #282828;
-  border-color: #666;
+  border-color: #535353;
 }
 
 #dashboard .title {
   background-color: #333;
+}
+
+.footer button {
+  border-color: #fff;
+  background-color: #333;
+  color: #fff;
+}
+
+.footer button:hover {
+  background-color: #fff;
+  color: #333;
+}
+
+.remix button {
+  border-color: #fff;
+  color: #fff;
+}
+
+.remix button:hover {
+  background-color: #fff;
 }
 
 #notSupported {
@@ -51,8 +50,28 @@ input, select, button {
   color: white;
 }
 
+.timestamp {
+  color: #8ec641;
+}
+
 #log {
-  border-color: #666;
-  background-color: #383838;
-  color: #ccc;
+  background-color: #000;
+  color: #cecece;
+}
+
+#dashboard .battery-level .battery {
+  border-color: #fff;
+}
+
+#dashboard .battery-level .battery:after {
+  background: #fff;
+}
+
+#dashboard .play-button .button span:hover {
+  border-left-color: #333;
+}
+
+.colorPicker .oned .pointer .shape {
+  border-left-color: #fff;
+  border-right-color: #fff;
 }

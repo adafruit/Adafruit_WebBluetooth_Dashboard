@@ -17,4 +17,3 @@ let fixScale = function(doc) {
         doc[addEvent](type, fix, true);
     }
 };
-

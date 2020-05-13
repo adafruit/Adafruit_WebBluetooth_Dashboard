@@ -10,50 +10,97 @@
       if (window.location.protocol === 'http:') {
         window.location.href = 'https:' + window.location.href.substring(5);
       }
-    </script>    
+    </script>
     <!-- import Chart.js library via CDN, per Chart.js documentation -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.js" defer></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js" defer></script>
     <script src="/js/colorjoe.min.js" defer></script>
     <script src="/js/scale.fix.js" defer></script>
     <script src="/js/graph.js" defer></script>
-    
+
     <!-- import the web page's stylesheets along with the themes -->
+    <link rel="stylesheet" href="https://use.typekit.net/qtk5kiq.css">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/light.css" id="light" class="alternate" disabled>
     <link rel="stylesheet" href="/css/dark.css"  id="dark"  class="alternate" disabled>
     <link rel="stylesheet" href="/css/colorjoe.css">
-    
+
     <!-- import the webpage's javascript file -->
     <script type="module" src="/js/script.js" defer></script>
-  </head>  
+  </head>
   <body>
     <header class="header">
-      <h1>Adafruit Web Bluetooth Dashboard</h1>
+      <div class="left">
+        <img src="https://cdn.glitch.com/32d343f2-d0c9-4c18-bd6f-e22516f696a5%2Fadafruit-logo.svg" class="Adafruit-Logo">
+      </div>
+      <div class="right">
+        <label for="knownonly">
+          Show only known devices
+        </label>
+        <div class="onoffswitch">
+          <input type="checkbox" name="knownonly" class="onoffswitch-checkbox" id="knownonly">
+          <label class="onoffswitch-label" for="knownonly">
+            <span class="onoffswitch-inner"></span>
+            <span class="onoffswitch-switch"></span>
+          </label>
+        </div>
+        <button id="butConnect" type="button">Connect</button>
+      </div>
     </header>
     <main class="main">
       <div id="notSupported" class="notSupported">
-        Sorry, <b>Web Bluetooth</b> is not supported on this device, make sure you're 
-        running Chrome 56 or later. If you are running linux, make sure you have enabled the 
+        Sorry, <b>Web Bluetooth</b> is not supported on this device, make sure you're
+        running Chrome 56 or later. If you are running linux, make sure you have enabled the
         <code>#enable-experimental-web-platform-features</code> flag in
         <code>chrome://flags</code>
-      </div>    
-
-      <div class="controls">
-        <button id="butConnect" type="button">Connect</button>
-        <input type="checkbox" id="knownonly"> Show only known devices
-        <input type="checkbox" id="darkmode"> Dark Mode
       </div>
-      <div id="dashboard"></div>      
+      <div class="subheader">
+        <div class="title left">
+          Web Bluetooth Dashboard
+        </div>
+        <div class="right">
+          <label for="darkmode">
+            Dark Mode
+          </label>
+          <div class="onoffswitch">
+            <input type="checkbox" name="darkmode" class="onoffswitch-checkbox" id="darkmode">
+            <label class="onoffswitch-label" for="darkmode">
+              <span class="onoffswitch-inner"></span>
+              <span class="onoffswitch-switch"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div id="dashboard"></div>
       <div id="log"></div>
-      <div class="controls">
-        <input type="checkbox" id="autoscroll"> Autoscroll
-        <input type="checkbox" id="showTimestamp"> Show Timestamp
-        <button id="butClear" type="button">Clear</button>
-        <span id="fpsCounter"></span>
-        <span class="remix"><button onclick="location.href='https://glitch.com/edit/#!/remix/adafruit-webbt-playground'">Remix with Glitch</button></span>
-      </div>
     </main>
+    <footer class="footer">
+      <div class="left">
+        <label for="autoscroll">Autoscroll</label>
+        <div class="onoffswitch">
+          <input type="checkbox" name="autoscroll" class="onoffswitch-checkbox" id="autoscroll">
+          <label class="onoffswitch-label" for="autoscroll">
+            <span class="onoffswitch-inner"></span>
+            <span class="onoffswitch-switch"></span>
+          </label>
+        </div>
+        <label for="showTimestamp">Show Timestamp</label>
+        <div class="onoffswitch">
+          <input type="checkbox" name="showTimestamp" class="onoffswitch-checkbox" id="showTimestamp">
+          <label class="onoffswitch-label" for="showTimestamp">
+            <span class="onoffswitch-inner"></span>
+            <span class="onoffswitch-switch"></span>
+          </label>
+        </div>
+      </div>
+      <div class="right">
+        <span id="fpsCounter"></span>
+        <button id="butClear" type="button">Clear Text</button>
+      </div>
+      <div class="remix clear">
+        <button>Remix with Glitch</button>
+      </div>
+    </footer>
     <div id="templates">
       <div class="text">
         <div class="title">
@@ -61,7 +108,7 @@
         </div>
         <div class="content">
           <p>
-          content            
+          content
           </p>
         </div>
       </div>
@@ -70,16 +117,12 @@
           title
         </div>
         <div class="content">
-          <canvas></canvas>
-        </div>
-      </div>
-      <div class="form">
-        <div class="title">
-          title
-        </div>
-        <div class="content">
-          <form>
-          </form>
+          <div class="text">
+            <p></p>
+          </div>
+          <div class="chart">
+            <canvas></canvas>
+          </div>
         </div>
       </div>
       <div class="color">
@@ -96,6 +139,59 @@
         </div>
         <div class="content">
           <canvas></canvas>
+        </div>
+      </div>
+      <div class="battery-level">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <div class="battery" data-toggle="tooltip" title="Battery Level: 100%">
+            <span class="level" style="width:100%;"></span>
+          </div>
+          <div class="percentage">
+            100%
+          </div>
+        </div>
+      </div>
+      <div class="play-button">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <div class="button">
+            <span></span>
+          </div>
+        </div>
+      </div>
+      <div class="onboard-buttons">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+        </div>
+      </div>
+      <div class="onboard-switch">
+        <div class="title">
+          title
+        </div>
+        <div class="content">
+          <div class="onoffswitch">
+            <input type="checkbox" name="onboardSwitch" class="onoffswitch-checkbox" id="onboardSwitch" disabled>
+            <label class="onoffswitch-label" for="onboardSwitch">
+              <span class="onoffswitch-inner"></span>
+              <span class="onoffswitch-switch"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="roundbutton">
+        <div class="buttonpanel">
+          <div class="roundbtn">
+            <div class="inner">
+              <span class="text"></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
