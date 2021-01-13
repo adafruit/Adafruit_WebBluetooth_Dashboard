@@ -31,7 +31,6 @@ const darkMode = document.getElementById('darkmode');
 const dashboard = document.getElementById('dashboard');
 const fpsCounter = document.getElementById("fpsCounter");
 const knownOnly = document.getElementById("knownonly");
-const butRemix = document.querySelector(".remix button");
 
 let colorIndex = 0;
 let activePanels = [];
@@ -46,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
   showTimestamp.addEventListener('click', clickTimestamp);
   darkMode.addEventListener('click', clickDarkMode);
   knownOnly.addEventListener('click', clickKnownOnly);
-  butRemix.addEventListener('click', remix);
 
   if ('bluetooth' in navigator) {
     const notSupported = document.getElementById('notSupported');
@@ -67,11 +65,6 @@ function startAnimating(fps) {
   then = Date.now();
   startTime = then;
   requestAnimationFrame(updateAllPanels);
-}
-
-function remix() {
-  let projectUrl = window.location.href.replace('.glitch.me/', '').replace('://', '://glitch.com/edit/#!/remix/');
-  window.location.href = projectUrl;
 }
 
 const boards = {
@@ -1018,7 +1011,7 @@ function create3dPanel(panelId) {
 
   {
     const gltfLoader = new GLTFLoader();
-    gltfLoader.load('https://cdn.glitch.com/eeed3166-9759-4ba5-ba6b-aed272d6db80%2Fbunny.glb', (gltf) => {
+    gltfLoader.load('assets/bunny.glb', (gltf) => {
       const root = gltf.scene;
       panels[panelId].model = root;
       panels[panelId].scene.add(root);
