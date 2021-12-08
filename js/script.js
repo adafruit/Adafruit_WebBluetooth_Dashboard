@@ -15,7 +15,6 @@ import {GLTFLoader} from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js
 let device;
 
 const bufferSize = 64;
-//const colors = ['#0000FF', '#FF0000', '#009900', '#FF9900', '#CC00CC', '#666666', '#00CCFF', '#000000'];
 const colors = ['#00a7e9', '#f89521', '#be1e2d'];
 const measurementPeriodId = '0001';
 
@@ -31,6 +30,7 @@ const darkMode = document.getElementById('darkmode');
 const dashboard = document.getElementById('dashboard');
 const fpsCounter = document.getElementById("fpsCounter");
 const knownOnly = document.getElementById("knownonly");
+const butRemix = document.querySelector(".remix button");
 
 let colorIndex = 0;
 let activePanels = [];
@@ -38,13 +38,14 @@ let bytesReceived = 0;
 let currentBoard;
 let buttonState = 0;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   butConnect.addEventListener('click', clickConnect);
   butClear.addEventListener('click', clickClear);
   autoscroll.addEventListener('click', clickAutoscroll);
   showTimestamp.addEventListener('click', clickTimestamp);
   darkMode.addEventListener('click', clickDarkMode);
   knownOnly.addEventListener('click', clickKnownOnly);
+  butRemix.addEventListener('click', remix);
 
   if ('bluetooth' in navigator) {
     const notSupported = document.getElementById('notSupported');
@@ -53,18 +54,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadAllSettings();
   updateTheme();
-  startAnimating(30);
+  await updateAllPanels();
   //createMockPanels();
 });
 
-let frameCount = 0;
-let fps, fpsInterval, startTime, now, then, elapsed;
 
-function startAnimating(fps) {
-  fpsInterval = 1000 / fps;
-  then = Date.now();
-  startTime = then;
-  requestAnimationFrame(updateAllPanels);
+function remix() {
+  let projectUrl = window.location.href.replace('.glitch.me/', '').replace('://', '://glitch.com/edit/#!/remix/');
+  window.location.href = projectUrl;
 }
 
 const boards = {
@@ -703,28 +700,22 @@ function saveSetting(setting, value) {
   window.localStorage.setItem(setting, JSON.stringify(value));
 }
 
-function updateAllPanels() {
+async function finishDrawing() {
+  return new Promise(requestAnimationFrame);
+}
+
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function updateAllPanels() {
   for (let panelId of activePanels) {
     updatePanel(panelId);
   }
 
-  // request another frame
-  requestAnimationFrame(updateAllPanels);
-
-  // calc elapsed time since last loop
-  now = Date.now();
-  elapsed = now - then;
-
-  // if enough time has elapsed, draw the next frame
-  if (elapsed > fpsInterval) {
-    // Get ready for next frame by setting then=now, but...
-    // Also, adjust for fpsInterval not being multiple of 16.67
-    then = now - (elapsed % fpsInterval);
-
-    var sinceStart = now - startTime;
-    var currentFps = Math.round(1000 / (sinceStart / ++frameCount) * 100) / 100;
-    fpsCounter.innerHTML = "Running at " + currentFps + " FPS";
-  }
+  // wait for frame to finish and request another frame
+  await finishDrawing();
+  await updateAllPanels();
 }
 
 function updatePanel(panelId) {
@@ -1011,7 +1002,7 @@ function create3dPanel(panelId) {
 
   {
     const gltfLoader = new GLTFLoader();
-    gltfLoader.load('assets/bunny.glb', (gltf) => {
+    gltfLoader.load('https://cdn.glitch.com/eeed3166-9759-4ba5-ba6b-aed272d6db80%2Fbunny.glb', (gltf) => {
       const root = gltf.scene;
       panels[panelId].model = root;
       panels[panelId].scene.add(root);
