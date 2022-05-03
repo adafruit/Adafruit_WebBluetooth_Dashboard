@@ -9,8 +9,8 @@
 
 'use strict';
 
-import * as THREE from 'https://threejs.org/build/three.module.js';
-import {GLTFLoader} from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import {GLTFLoader} from 'gltfloader';
 
 let device;
 
@@ -30,7 +30,6 @@ const darkMode = document.getElementById('darkmode');
 const dashboard = document.getElementById('dashboard');
 const fpsCounter = document.getElementById("fpsCounter");
 const knownOnly = document.getElementById("knownonly");
-const butRemix = document.querySelector(".remix button");
 
 let colorIndex = 0;
 let activePanels = [];
@@ -45,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   showTimestamp.addEventListener('click', clickTimestamp);
   darkMode.addEventListener('click', clickDarkMode);
   knownOnly.addEventListener('click', clickKnownOnly);
-  butRemix.addEventListener('click', remix);
 
   if ('bluetooth' in navigator) {
     const notSupported = document.getElementById('notSupported');
@@ -57,12 +55,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await updateAllPanels();
   //createMockPanels();
 });
-
-
-function remix() {
-  let projectUrl = window.location.href.replace('.glitch.me/', '').replace('://', '://glitch.com/edit/#!/remix/');
-  window.location.href = projectUrl;
-}
 
 const boards = {
   CLUE: {
